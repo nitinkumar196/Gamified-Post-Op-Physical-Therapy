@@ -4,6 +4,8 @@ A browser prototype of the app described in [PLAN.md](PLAN.md). It uses the came
 
 **Exercises:** Seated Knee Extension and Mini Squat (both filmed from the side).
 
+**Live demo:** https://nitinkumar196.github.io/Gamified-Post-Op-Physical-Therapy/ (works on phones; the clinician page is at `/dashboard.html`)
+
 ## Run it
 
 You need Python (already installed) and Chrome or Edge.
@@ -32,7 +34,9 @@ Then open **http://localhost:8000**. The camera only works on `localhost` or `ht
 
 ### Running on a phone
 
-Phones only allow the camera over **https**. The easiest route is to push this folder to a GitHub repo and turn on **GitHub Pages**. The app is all static files, so it works as-is.
+Phones only allow the camera over **https**, so use the GitHub Pages link above. It redeploys automatically about a minute after every push to `main`.
+
+Progress is saved per browser, so the phone and the laptop each keep their own history. To prepare a phone for the demo, open the link on it once and tick "Load demo history".
 
 ## How it works
 
