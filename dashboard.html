@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clinician Dashboard</title>
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+<main class="dash">
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">Clinician view</div>
+      <h1 id="d-patient">Patient</h1>
+      <div class="muted" id="d-sub"></div>
+    </div>
+    <div class="topbar-actions">
+      <a class="btn ghost small" href="index.html">← Patient app</a>
+      <button class="btn ghost small" id="d-seed">Load demo history</button>
+    </div>
+  </header>
+
+  <section id="d-alerts" class="alerts" aria-live="polite"></section>
+
+  <section class="tiles" id="d-tiles"></section>
+
+  <section class="charts">
+    <div class="card">
+      <h2>Knee extension: best angle per session</h2>
+      <p class="muted small">Higher is better · dashed line = current target</p>
+      <div class="chart" id="c-knee"></div>
+    </div>
+    <div class="card">
+      <h2>Mini squat: deepest knee angle per session</h2>
+      <p class="muted small">Lower is deeper · dashed line = current target</p>
+      <div class="chart" id="c-squat"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Sessions</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Date</th><th>Exercise</th><th>Level</th><th>Reps</th><th>Good form</th><th>Best angle</th><th>Form faults</th><th>Pain</th></tr></thead>
+        <tbody id="d-rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Protocol (prescription)</h2>
+    <p class="muted">The patient app uses these numbers. Changes apply at the patient’s next exercise.</p>
+    <form id="d-protocol" class="protocol"></form>
+  </section>
+</main>
+<script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

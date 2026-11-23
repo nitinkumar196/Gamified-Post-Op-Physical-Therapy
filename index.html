@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f2a37">
+  <title>HealQuest</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<main id="app">
+
+  <!-- First run -->
+  <section id="screen-onboard" class="screen" hidden>
+    <div class="card narrow">
+      <div class="avatar-wrap" data-avatar="0.6"></div>
+      <h1>Welcome to <span data-app-name></span></h1>
+      <p class="lead">Your physio exercises, with a coach that watches your form.</p>
+      <label class="field">Your name
+        <input id="in-name" type="text" placeholder="e.g. Raju" autocomplete="given-name">
+      </label>
+      <label class="field">What does your family call you? <span class="muted">(optional)</span>
+        <input id="in-family" type="text" placeholder="e.g. Appa">
+      </label>
+      <label class="check"><input id="in-demo" type="checkbox" checked> Load demo history (4-day streak) for the presentation</label>
+      <button id="btn-onboard" class="btn primary big">Let’s begin</button>
+    </div>
+  </section>
+
+  <!-- Home: storyboard panel 1 -->
+  <section id="screen-home" class="screen" hidden>
+    <header class="topbar">
+      <div class="brand" data-app-name></div>
+      <div class="topbar-actions">
+        <a class="btn ghost small" href="dashboard.html">Clinician view</a>
+        <button id="btn-voice" class="btn ghost small" aria-pressed="true">🔊 Voice on</button>
+      </div>
+    </header>
+    <div class="home-grid">
+      <div class="card hero">
+        <div class="bubble" id="greeting"></div>
+        <div class="avatar-wrap big" id="home-avatar"></div>
+        <div class="avatar-name" id="avatar-name"></div>
+      </div>
+      <div class="stack">
+        <div class="card stats">
+          <div class="stat">
+            <div class="stat-label">Level</div>
+            <div class="stat-value" id="st-level">1</div>
+            <div class="xpbar"><div id="st-xpbar"></div></div>
+            <div class="stat-sub" id="st-xp"></div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Streak</div>
+            <div class="stat-value"><span class="flame">🔥</span> <span id="st-streak">0</span></div>
+            <div class="stat-sub" id="st-streak-sub"></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Today’s plan</h2>
+          <ul class="plan" id="plan-list"></ul>
+          <button id="btn-start" class="btn primary big">Start today’s session</button>
+        </div>
+      </div>
+    </div>
+    <footer class="home-foot">
+      <button id="btn-reset" class="link">Reset app data</button>
+    </footer>
+  </section>
+
+  <!-- Exercise setup / instructions -->
+  <section id="screen-setup" class="screen" hidden>
+    <div class="card narrow">
+      <div class="eyebrow" id="setup-step"></div>
+      <h1 id="setup-title"></h1>
+      <p class="muted" id="setup-view"></p>
+      <p id="setup-why"></p>
+      <ol class="setup-list" id="setup-list"></ol>
+      <div class="target-chip" id="setup-target"></div>
+      <div id="source-choice" class="source-choice">
+        <button id="btn-camera" class="btn primary big">📷 Start camera</button>
+        <button id="btn-demo" class="btn secondary big">🧍 Demo mode (simulated patient)</button>
+        <label class="btn ghost">🎞️ Use a video file<input id="in-video" type="file" accept="video/*" hidden></label>
+      </div>
+      <button id="btn-ready" class="btn primary big" hidden>I’m ready</button>
+      <p class="status" id="setup-status"></p>
+      <button id="btn-setup-back" class="link">Back to home</button>
+    </div>
+  </section>
+
+  <!-- Live session: storyboard panels 2 & 3 -->
+  <section id="screen-session" class="screen session" hidden>
+    <div class="stage">
+      <canvas id="canvas"></canvas>
+      <video id="video" playsinline muted></video>
+      <div class="hud-top">
+        <div class="hud-ex">
+          <div class="hud-name" id="hud-name"></div>
+          <span class="chip" id="hud-level">Normal</span>
+        </div>
+        <div class="cue-bubble" id="cue" hidden></div>
+        <div class="hud-reps"><span id="hud-reps">0</span><small>/<span id="hud-total">5</span> reps</small></div>
+      </div>
+      <div class="hud-status" id="hud-status" hidden></div>
+      <div class="hud-bottom">
+        <button id="btn-end" class="btn ghost dark">End</button>
+        <div class="progress"><div id="hud-progress"></div><span class="progress-label">to target</span></div>
+        <button id="btn-pain" class="pain" aria-label="Report pain">PAIN</button>
+      </div>
+      <div class="modal" id="modal" hidden>
+        <div class="card narrow center" id="modal-body"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Summary: storyboard panel 4 -->
+  <section id="screen-summary" class="screen" hidden>
+    <div class="card narrow center">
+      <div class="levelup" id="sum-levelup" hidden>Level up!</div>
+      <div class="avatar-wrap big" id="sum-avatar"></div>
+      <div class="healthbar"><div id="sum-health"></div></div>
+      <h1 id="sum-title">Session complete</h1>
+      <div class="sum-row">
+        <div><div class="big-num" id="sum-xp">+0</div><div class="muted">XP</div></div>
+        <div><div class="big-num">🔥 <span id="sum-streak">1</span></div><div class="muted">day streak</div></div>
+        <div><div class="big-num" id="sum-acc">0%</div><div class="muted">good form</div></div>
+      </div>
+      <ul class="sum-list" id="sum-list"></ul>
+      <div class="share">
+        <div class="phone-preview" id="sum-message"></div>
+        <a id="btn-whatsapp" class="btn whatsapp big" target="_blank" rel="noopener">Share with family on WhatsApp</a>
+        <button id="btn-copy" class="btn ghost small">Copy message</button>
+      </div>
+      <button id="btn-home" class="btn primary">Done</button>
+    </div>
+  </section>
+
+</main>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

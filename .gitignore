@@ -1,0 +1,10 @@
+# Offline MediaPipe copies (large; re-download with scripts/fetch-offline.ps1)
+vendor/
+
+# Local tooling
+.claude/settings.local.json
+node_modules/
+__pycache__/
+*.log
+.DS_Store
+Thumbs.db

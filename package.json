@@ -1,0 +1,11 @@
+{
+  "name": "healquest",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Gamified AR-guided post-op physiotherapy prototype",
+  "type": "module",
+  "scripts": {
+    "start": "python scripts/serve.py 8000",
+    "test": "node --test tests/*.test.mjs"
+  }
+}
