@@ -14,6 +14,7 @@ export const XP = {
 export const DEFAULT_PROTOCOL = {
   side: 'auto',        // 'auto' | 'left' | 'right'  (operated leg)
   painStopsAfter: 2,   // nth pain report in a session stops it and alerts the clinician
+  setupCheck: true,    // safety checklist + footprint position check before each exercise
   exercises: {
     kneeExtension: { enabled: true, reps: 3, target: 155, easierTarget: 140, holdSec: 1, easierHoldSec: 1 },
     miniSquat:     { enabled: true, reps: 3, target: 140, easierTarget: 150, holdSec: 1, easierHoldSec: 1, safetyLimit: 100 },

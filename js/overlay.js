@@ -170,3 +170,62 @@ export function drawOverlay(ctx, o) {
   if (o.ghost) drawHoldRing(ctx, o.ghost.dot, o.hold, s);
   if (o.joint && Number.isFinite(o.metric)) drawBadge(ctx, o.joint, o.metric, o.target, o.good, s, o.w, o.h);
 }
+
+/**
+ * Set-up check: footprints where the feet should be (green when in place,
+ * amber while moving there) and an arrow from the current foot position.
+ */
+export function drawFootprints(ctx, { foot, from, ok, progress = 0, w }) {
+  if (!foot) return;
+  const s = w / 1280;
+  const color = ok ? COLORS.good : COLORS.near;
+  const footShape = (cx, cy) => {
+    ctx.beginPath(); ctx.ellipse(cx, cy, 13 * s, 26 * s, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    for (let i = 0; i < 5; i++) {
+      const tx = cx - 10 * s + i * 5 * s;
+      const ty = cy - 32 * s + Math.abs(i - 1) * 2.5 * s;
+      ctx.beginPath(); ctx.arc(tx, ty, (i === 0 ? 4 : 3) * s, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+  };
+  const gy = foot.y + 6 * s;
+  ctx.save();
+  // Dashed landing ring
+  ctx.setLineDash([8 * s, 8 * s]);
+  ctx.lineWidth = 4 * s;
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx.beginPath(); ctx.ellipse(foot.x, gy, 70 * s, 22 * s, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5 * s;
+  ctx.beginPath(); ctx.ellipse(foot.x, gy, 70 * s, 22 * s, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.setLineDash([]);
+  // Two footprints, slightly apart
+  ctx.fillStyle = ok ? 'rgba(47,191,113,0.75)' : 'rgba(245,165,36,0.7)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+  ctx.lineWidth = 2 * s;
+  footShape(foot.x - 20 * s, gy - 16 * s);
+  footShape(foot.x + 20 * s, gy - 10 * s);
+  // Fill ring while holding still in the right spot
+  if (ok && progress > 0) {
+    ctx.strokeStyle = COLORS.good;
+    ctx.lineWidth = 7 * s;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.ellipse(foot.x, gy, 70 * s, 22 * s, 0, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+    ctx.stroke();
+  }
+  // Arrow from where the foot is to where it should go
+  if (from && Math.hypot(from.x - foot.x, from.y - foot.y) > 20 * s) {
+    const ang = Math.atan2(foot.y - from.y, foot.x - from.x);
+    const end = { x: foot.x - Math.cos(ang) * 75 * s, y: foot.y - Math.sin(ang) * 30 * s };
+    ctx.strokeStyle = COLORS.arc;
+    ctx.lineWidth = 6 * s;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+    const hl = 18 * s;
+    ctx.beginPath();
+    ctx.moveTo(end.x, end.y); ctx.lineTo(end.x - hl * Math.cos(ang - 0.5), end.y - hl * Math.sin(ang - 0.5));
+    ctx.moveTo(end.x, end.y); ctx.lineTo(end.x - hl * Math.cos(ang + 0.5), end.y - hl * Math.sin(ang + 0.5));
+    ctx.stroke();
+  }
+  ctx.restore();
+}

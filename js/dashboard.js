@@ -185,6 +185,7 @@ function renderProtocol(p) {
         </label>
         <label>Stop session after N pain reports<input type="number" name="painStopsAfter" value="${p.painStopsAfter}" min="1" max="5" step="1" required></label>
       </div>
+      <label class="check" style="margin-top:12px"><input type="checkbox" name="setupCheck" ${p.setupCheck ? 'checked' : ''}> Safety checklist and footprint position check before each exercise</label>
     </fieldset>
     ${exHtml}
     <div class="actions">
@@ -199,6 +200,7 @@ function renderProtocol(p) {
     const next = store.getProtocol();
     next.side = fd.get('side');
     next.painStopsAfter = +fd.get('painStopsAfter');
+    next.setupCheck = fd.get('setupCheck') === 'on';
     for (const id of Object.keys(EXERCISES)) {
       const rx = next.exercises[id];
       rx.enabled = fd.get(`${id}.enabled`) === 'on';

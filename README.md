@@ -53,6 +53,7 @@ Progress is saved per browser, so the phone and the laptop each keep their own h
 | `js/garden.js` | Recovery garden: works out plants, tree, sunshine and butterflies from session history, and draws the scene |
 | `js/filters.js` | Smooths the tracked joints so the wireframe doesn't shake, and rides out brief dropouts |
 | `js/camera.js` | Opens the camera at its widest view, handles zoom and switching between cameras |
+| `js/setup.js` | Set-up check: the safety checklist for each exercise, and the position check that drives the footprints |
 | `js/store.js` | Local storage for profile, protocol and sessions (a backend replaces this later) |
 | `js/dashboard.js` | Clinician page: alerts, stats, ROM trend charts, session log, protocol editor |
 | `js/config.js` | App name, XP values and default protocol (targets, reps, holds, limits) |

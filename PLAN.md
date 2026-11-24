@@ -147,6 +147,7 @@ Safety rules for the game layer: no timers that push speed, no leaderboards betw
 - Recovery garden (plants, a range-of-motion tree, sunshine and butterflies), XP and levels, streak, session summary, WhatsApp share to family.
 - Clinician page: protocol editor (targets, reps, holds, limits) and a progress dashboard from local data.
 - **Demo mode** with a simulated patient, as a backup if the camera or lighting fails during the presentation.
+- **Set-up check (Floor Portal lite):** before each exercise, a tap-to-confirm spoken safety checklist, then footprints on the camera view. Pose tracking confirms the patient is placed so the whole movement stays in view, guiding them with body-relative cues ("move your chair back", "take a small step forward"). Reps only start counting once they've held still in place for 1.5 s. Clinicians can switch it off, and patients can skip it.
 
 ### Phase 1: MVP (about 6–8 weeks)
 - Backend (Supabase): accounts, patient ↔ clinician linking, session sync, offline-first.
@@ -160,7 +161,6 @@ Safety rules for the game layer: no timers that push speed, no leaderboards betw
 - WhatsApp Business API daily family summaries and missed-day alerts; family cheers.
 - Protocol templates (e.g. TKR weeks 0–2, 2–6, 6–12) with clinician-approved progression.
 - Accessibility pass with older users (large-text mode, simplified mode for family-assisted setup).
-- **Set-up check (Floor Portal lite):** before each exercise, footprints or a chair outline drawn on the camera view; pose tracking confirms the patient is standing or sitting in the right spot. A spoken safety checklist covers clear floor, no rugs or cables, a steady chair with no wheels, and support within reach.
 - Share a picture of the garden in the family update.
 
 ### Later: AR Floor Portal (native app)

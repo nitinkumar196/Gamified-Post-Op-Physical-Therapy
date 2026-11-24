@@ -26,12 +26,29 @@ const noise = (t, k) => Math.sin(t * 7.3 + k) * 0.8 + Math.sin(t * 3.1 + k * 2) 
 export class Simulator {
   constructor() { this.setExercise('kneeExtension'); }
 
-  setExercise(id) { this.id = id; this.t0 = performance.now(); }
+  // mode: 'wait' (resting in the wrong spot, during the safety checklist),
+  //       'arrive' (moving into place, during the position check),
+  //       'exercise' (doing reps). Without a set-up check, start() goes straight to reps.
+  setExercise(id) { this.id = id; this.mode = 'wait'; this.t0 = performance.now(); }
+  arrive() { this.mode = 'arrive'; this.arriveT = performance.now(); }
+  start() { if (this.mode !== 'exercise') { this.mode = 'exercise'; this.t0 = performance.now(); } }
+
+  /** Horizontal offset: starts too far right so the position check has something to fix. */
+  #offset(now) {
+    if (this.mode === 'exercise') return 0;
+    const far = this.id === 'miniSquat' ? 460 : 380;
+    if (this.mode === 'wait') return far;
+    const k = Math.min(1, Math.max(0, (now - this.arriveT - 1800) / 2200));
+    return far * (1 - k * k * (3 - 2 * k));
+  }
 
   /** Returns { landmarks (normalised, 33), figure (pixel points for drawing) }. */
   frame(now) {
-    const t = (now - this.t0) / 1000;
-    const P = this.id === 'miniSquat' ? this.#squat(t) : this.#kneeExt(t);
+    const t = this.mode === 'exercise' ? (now - this.t0) / 1000 : 0;
+    const raw = this.id === 'miniSquat' ? this.#squat(t) : this.#kneeExt(t);
+    const dx = this.#offset(now);
+    const P = { kind: raw.kind, dx };
+    for (const [k, v] of Object.entries(raw)) if (v && typeof v === 'object') P[k] = { x: v.x + dx, y: v.y };
     const lm = Array.from({ length: 33 }, () => ({ x: 0.5, y: 0.5, z: 0, visibility: 0 }));
     const set = (i, p, v) => { lm[i] = { x: p.x / W, y: p.y / H, z: 0, visibility: v }; };
     // Near side = anatomical right (12, 14, 16, 24, 26, 28, 30, 32); far side = left.
@@ -115,9 +132,10 @@ export class Simulator {
       ctx.stroke();
     };
     if (P.kind === 'seated') {
-      stroke([{ x: 470, y: 260 }, { x: 480, y: 460 }, { x: 480, y: 655 }], 14, '#8a5a3b');
-      stroke([{ x: 470, y: 462 }, { x: 700, y: 462 }], 14, '#8a5a3b');
-      stroke([{ x: 690, y: 462 }, { x: 690, y: 655 }], 14, '#8a5a3b');
+      const c = P.dx || 0; // the chair moves with the patient
+      stroke([{ x: 470 + c, y: 260 }, { x: 480 + c, y: 460 }, { x: 480 + c, y: 655 }], 14, '#8a5a3b');
+      stroke([{ x: 470 + c, y: 462 }, { x: 700 + c, y: 462 }], 14, '#8a5a3b');
+      stroke([{ x: 690 + c, y: 462 }, { x: 690 + c, y: 655 }], 14, '#8a5a3b');
     } else {
       // Support counter
       stroke([{ x: 990, y: 215 }, { x: 990, y: 655 }], 14, '#8a5a3b');

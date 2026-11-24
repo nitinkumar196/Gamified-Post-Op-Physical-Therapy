@@ -6,7 +6,8 @@ import { EXERCISES, jointsFor, pickSide, prescription } from './exercises.js';
 import { RepCounter } from './repCounter.js';
 import { Smoother } from './geometry.js';
 import { initPose, detectPose, toPixels } from './pose.js';
-import { drawOverlay } from './overlay.js';
+import { drawOverlay, drawFootprints } from './overlay.js';
+import { SAFETY, HOLD_STILL_MS, positionCheck } from './setup.js';
 import { Simulator, SIM_SIZE } from './sim.js';
 import { openCamera, listCameras, setZoom, cameraName } from './camera.js';
 import { Coach, countWord } from './voice.js';
@@ -284,6 +285,10 @@ function beginExercise() {
     smoother: new Smoother(120),
     reps: [], partials: 0, best: null, faults: {}, faultSince: {}, finalized: false,
     lastGood: -Infinity,
+    // Set-up check: 'safety' (checklist) → 'position' (footprints) → 'go' (counting reps)
+    phase: S.protocol.setupCheck ? 'safety' : 'go',
+    setup: S.protocol.setupCheck ? 'pending' : 'off',
+    posSince: null,
   };
   lmSmoother.reset();
   if (S.source.kind === 'sim') sim.setExercise(id);
@@ -296,10 +301,78 @@ function beginExercise() {
   hideModal();
   $('cue').hidden = true;
   show('session');
-  coach.say(def.direction === 'up' ? `${def.name}. Slowly straighten your knee.` : `${def.name}. Slowly bend your knees.`, { key: 'intro', gap: 0 });
+  if (S.ex.phase === 'safety') showSafetyCheck();
+  else startExercising();
   S.running = true;
   S.lastVideoTime = -1;
   requestAnimationFrame(loop);
+}
+
+// ───────────────────────── Set-up check (Floor Portal lite) ─────────────────────────
+
+function showSafetyCheck() {
+  const items = SAFETY[S.ex.id] ?? [];
+  showModal(`<div class="safety-badge" aria-hidden="true">🛡️</div>
+    <h2>Quick safety check</h2>
+    <p class="muted">Tap each one when it’s true for you.</p>
+    <div class="checklist">${items.map((t) =>
+      `<button type="button" class="check-item" aria-pressed="false"><span class="box" aria-hidden="true"></span>${esc(t)}</button>`).join('')}</div>
+    <button class="btn primary big" id="m-safe" disabled>All clear, let’s go</button>
+    <button class="link" id="m-skip-safety" type="button">Skip set-up</button>`);
+  coach.say(`Quick safety check. ${items.join('. ')}.`, { key: 'safety', gap: 0 });
+  const boxes = [...document.querySelectorAll('.check-item')];
+  for (const b of boxes) {
+    b.onclick = () => {
+      b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+      $('m-safe').disabled = !boxes.every((x) => x.getAttribute('aria-pressed') === 'true');
+    };
+  }
+  $('m-safe').onclick = () => {
+    hideModal();
+    S.ex.phase = 'position';
+    S.ex.posSince = null;
+    if (S.source.kind === 'sim') sim.arrive();
+    updateLevelChip();
+    coach.say('Now let’s get you in position. Follow the footprints.', { key: 'position', gap: 0 });
+  };
+  $('m-skip-safety').onclick = skipSetup;
+}
+
+function skipSetup() {
+  if (!S.ex || S.ex.phase === 'go') return;
+  S.ex.setup = 'skipped';
+  hideModal();
+  startExercising();
+}
+$('btn-skip-setup').onclick = skipSetup;
+
+/** Position phase: footprints, guidance, and a short hold-still before reps start counting. */
+function setupFrame(ex, pts, j, w, h, now) {
+  drawOverlay(ctx, { pts, w, h, showSkeleton: true });
+  if (ex.phase !== 'position') return;
+  const r = positionCheck(ex.id, j, w, h);
+  if (r.ok) ex.posSince ??= now;
+  else ex.posSince = null;
+  const progress = r.ok ? Math.min(1, (now - ex.posSince) / HOLD_STILL_MS) : 0;
+  drawFootprints(ctx, { ...r, progress, w });
+  setStatus(r.ok ? 'Perfect, stay there…' : r.msg);
+  setProgress(progress);
+  if (!r.ok) coach.say(r.msg, { key: 'setup', gap: 5000 });
+  if (progress >= 1) {
+    ex.setup = 'passed';
+    startExercising('Perfect. ');
+  }
+}
+
+function startExercising(prefix = '') {
+  const ex = S.ex;
+  ex.phase = 'go';
+  if (S.source.kind === 'sim') sim.start();
+  updateLevelChip();
+  setStatus(null);
+  setProgress(0);
+  const how = ex.def.direction === 'up' ? 'Slowly straighten your knee.' : 'Slowly bend your knees.';
+  coach.say(`${prefix}${ex.def.name}. ${how}`, { key: 'intro', gap: 0 });
 }
 
 function sizeCanvas(w, h) {
@@ -348,6 +421,7 @@ function processFrame(rawLandmarks, w, h, now) {
   }
   const j = jointsFor(pts, ex.side);
   const showSkeleton = S.source.kind !== 'sim';
+  if (ex.phase !== 'go') { setupFrame(ex, pts, j, w, h, now); return; }
 
   if (!def.required.every((k) => j[k] && j[k].v >= TRACKING.minVisibility)) {
     // Brief dropouts are normal (a hand passes in front, a joint leaves the frame).
@@ -451,8 +525,11 @@ function updateReps(bump = false) {
 
 function updateLevelChip() {
   const easier = S.ex.level === 'easier';
-  $('hud-level').textContent = easier ? 'Easier version' : 'Normal';
-  $('hud-level').classList.toggle('easier', easier);
+  const settingUp = S.ex.phase !== 'go';
+  $('hud-level').textContent = settingUp ? 'Set-up check' : easier ? 'Easier version' : 'Normal';
+  $('hud-level').classList.toggle('easier', easier && !settingUp);
+  $('hud-level').classList.toggle('setup', settingUp);
+  $('btn-skip-setup').hidden = !settingUp;
 }
 
 function setProgress(p) { $('hud-progress').style.width = `${Math.round(p * 100)}%`; }
@@ -537,6 +614,7 @@ function finalizeExercise(completed) {
   S.session.results.push({
     id: ex.id, level: ex.level, targetReps: ex.rx.reps, reps: ex.reps.length, goodReps: good,
     partials: ex.partials, best: ex.best == null ? null : Math.round(ex.best), faults: ex.faults, completed, xp,
+    setup: ex.setup,
   });
   return xp;
 }
