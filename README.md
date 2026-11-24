@@ -1,6 +1,6 @@
 # Gamified Post-Op Physical Therapy (prototype)
 
-A browser prototype of the app described in [PLAN.md](PLAN.md). It uses the camera to track the patient's pose on-device (MediaPipe), draws a green **ghost limb** showing the correct position, turns the limb red or green, counts reps with a hold timer, coaches by voice, and adds a game layer (healing-heart avatar, XP and levels, streak, family WhatsApp summary). A clinician page sets the targets and shows progress.
+A browser prototype of the app described in [PLAN.md](PLAN.md). It uses the camera to track the patient's pose on-device (MediaPipe), draws a green **ghost limb** showing the correct position, turns the limb red or green, counts reps with a hold timer, coaches by voice, and adds a game layer (a recovery garden that grows with each session, XP and levels, streak, family WhatsApp summary). A clinician page sets the targets and shows progress.
 
 **Exercises:** Seated Knee Extension and Mini Squat (both filmed from the side).
 
@@ -50,6 +50,9 @@ Progress is saved per browser, so the phone and the laptop each keep their own h
 | `js/overlay.js` | Draws the AR layer: ghost limb, red/green limb, motion arc, angle badge, hold ring |
 | `js/app.js` | Screens, the per-frame loop, pain-safe mode, XP and streak, summary and WhatsApp message |
 | `js/sim.js` | Demo mode: a simulated patient (some reps fall short or have a form fault on purpose) |
+| `js/garden.js` | Recovery garden: works out plants, tree, sunshine and butterflies from session history, and draws the scene |
+| `js/filters.js` | Smooths the tracked joints so the wireframe doesn't shake, and rides out brief dropouts |
+| `js/camera.js` | Opens the camera at its widest view, handles zoom and switching between cameras |
 | `js/store.js` | Local storage for profile, protocol and sessions (a backend replaces this later) |
 | `js/dashboard.js` | Clinician page: alerts, stats, ROM trend charts, session log, protocol editor |
 | `js/config.js` | App name, XP values and default protocol (targets, reps, holds, limits) |

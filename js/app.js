@@ -10,7 +10,8 @@ import { drawOverlay } from './overlay.js';
 import { Simulator, SIM_SIZE } from './sim.js';
 import { openCamera, listCameras, setZoom, cameraName } from './camera.js';
 import { Coach, countWord } from './voice.js';
-import { heartSVG, animateHeart } from './avatar.js';
+import { heartSVG } from './avatar.js';
+import { gardenState, gardenSVG, newMilestones } from './garden.js';
 import * as store from './store.js';
 
 const $ = (id) => document.getElementById(id);
@@ -63,8 +64,12 @@ function renderHome() {
   const st = store.stats();
   const name = S.profile.name;
   $('greeting').innerHTML = `${greetingWord()}!<br>Let’s heal ${esc(name)} today`;
-  $('home-avatar').innerHTML = heartSVG(st.doneToday ? 1 : 0.55);
-  $('avatar-name').textContent = name;
+  const g = garden();
+  $('home-garden').innerHTML = gardenSVG(g, { label: `${name}'s recovery garden` });
+  $('garden-title').textContent = `${name}'s recovery garden · ${g.plants.length} plant${g.plants.length === 1 ? '' : 's'}`;
+  $('garden-next').textContent = g.missed >= 2
+    ? '🌧️ Your garden misses you. One session today will perk it right up.'
+    : st.doneToday ? `Watered today ✓  Next: ${g.next}` : g.next;
   $('st-level').textContent = st.level;
   $('st-xpbar').style.width = `${(st.intoLevel / st.perLevel) * 100}%`;
   $('st-xp').textContent = `${st.intoLevel} / ${st.perLevel} XP to level ${st.level + 1}`;
@@ -584,24 +589,34 @@ function finishSession() {
     exercises: sess.results,
   };
   const before = store.stats();
+  const gardenBefore = garden();
   store.addSession(record);
   const after = store.stats();
-  renderSummary(record, before, after);
+  renderSummary(record, before, after, gardenBefore, garden());
 }
 
-function renderSummary(rec, before, after) {
+/** Current garden, using this patient's knee-extension target for the tree. */
+function garden() {
+  return gardenState(store.getSessions(), { kneeTarget: store.getProtocol().exercises.kneeExtension.target });
+}
+
+function renderSummary(rec, before, after, gardenBefore, gardenAfter) {
   const total = S.plan.length;
   const done = rec.exercises.filter((r) => r.completed).length;
   const reps = rec.exercises.reduce((a, r) => a + r.reps + r.partials, 0);
   const good = rec.exercises.reduce((a, r) => a + r.goodReps, 0);
   const acc = reps ? Math.round((good / reps) * 100) : 0;
-  const health = total ? done / total : 0;
 
   $('sum-levelup').hidden = after.level <= before.level;
   if (after.level > before.level) $('sum-levelup').textContent = `Level up! You’re now level ${after.level}`;
-  animateHeart($('sum-avatar'), 0.5, Math.max(0.5, health));
-  $('sum-health').style.width = '0%';
-  requestAnimationFrame(() => requestAnimationFrame(() => { $('sum-health').style.width = `${health * 100}%`; }));
+  $('sum-garden').innerHTML = gardenSVG(gardenAfter, { grow: rec.id, label: `${S.profile.name}'s recovery garden` });
+  const planted = gardenAfter.plants.length - gardenBefore.plants.length;
+  const news = newMilestones(gardenBefore, gardenAfter);
+  $('sum-garden-news').innerHTML = [
+    planted > 0 ? `<li>🌱 You planted ${planted} new ${planted === 1 ? 'flower' : 'flowers'} today</li>` : '',
+    ...news.map((m) => `<li class="milestone">${m.icon} <b>New in your garden:</b> ${m.label}</li>`),
+    `<li class="muted">${gardenAfter.next}</li>`,
+  ].join('');
   $('sum-title').textContent = rec.stoppedForPain ? 'Rest well today' : done === total ? 'Session complete!' : 'Good effort today';
   $('sum-xp').textContent = `+${rec.xp}`;
   $('sum-streak').textContent = `Day ${after.streak}`;
@@ -617,19 +632,20 @@ function renderSummary(rec, before, after) {
   }
   $('sum-list').innerHTML = lines.join('');
 
-  const msg = familyMessage(rec, done, total, acc, after);
+  const msg = familyMessage(rec, done, total, acc, after, gardenAfter);
   $('sum-message').textContent = msg;
   $('btn-whatsapp').href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
   $('btn-copy').onclick = async () => {
     try { await navigator.clipboard.writeText(msg); $('btn-copy').textContent = 'Copied ✓'; } catch { /* ignore */ }
   };
   $('btn-copy').textContent = 'Copy message';
-  coach.say(after.level > before.level ? `Level up! You reached level ${after.level}. Streak: day ${after.streak}.`
-    : `Well done. Streak: day ${after.streak}.`, { key: 'summary', gap: 0 });
+  const gardenLine = news.length ? ` New in your garden: ${news.map((m) => m.label.split(':')[0]).join(' and ')}.` : '';
+  coach.say((after.level > before.level ? `Level up! You reached level ${after.level}. Streak: day ${after.streak}.`
+    : `Well done. Streak: day ${after.streak}.`) + gardenLine, { key: 'summary', gap: 0 });
   show('summary');
 }
 
-function familyMessage(rec, done, total, acc, st) {
+function familyMessage(rec, done, total, acc, st, g) {
   const who = S.profile.family || S.profile.name;
   const date = new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
   const lines = [`🩺 ${who}: ${done}/${total} exercises done${done === total ? ' ✓' : ''} (${date})`];
@@ -638,6 +654,7 @@ function familyMessage(rec, done, total, acc, st) {
   }
   lines.push(`🎯 Good form: ${acc}%`);
   lines.push(`🔥 Streak: Day ${st.streak} · Level ${st.level}`);
+  lines.push(`🌻 Recovery garden: ${g.plants.length} plants${g.tree.fruit ? ', and the tree is bearing fruit' : ''}${g.butterflies ? ` 🦋` : ''}`);
   if (rec.stoppedForPain) lines.push('⚠️ Stopped early because of pain. The physio has been alerted.');
   else if (rec.painEvents.length) lines.push(`⚠️ Reported pain ${rec.painEvents.length === 1 ? 'once' : `${rec.painEvents.length} times`}, switched to an easier version.`);
   lines.push(`Sent from ${APP_NAME}`);

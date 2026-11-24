@@ -39,8 +39,11 @@
     <div class="home-grid">
       <div class="card hero">
         <div class="bubble" id="greeting"></div>
-        <div class="avatar-wrap big" id="home-avatar"></div>
-        <div class="avatar-name" id="avatar-name"></div>
+        <div class="garden-wrap" id="home-garden"></div>
+        <div class="garden-caption">
+          <b id="garden-title"></b>
+          <span id="garden-next"></span>
+        </div>
       </div>
       <div class="stack">
         <div class="card stats">
@@ -123,8 +126,8 @@
   <section id="screen-summary" class="screen" hidden>
     <div class="card narrow center">
       <div class="levelup" id="sum-levelup" hidden>Level up!</div>
-      <div class="avatar-wrap big" id="sum-avatar"></div>
-      <div class="healthbar"><div id="sum-health"></div></div>
+      <div class="garden-wrap" id="sum-garden"></div>
+      <ul class="garden-news" id="sum-garden-news"></ul>
       <h1 id="sum-title">Session complete</h1>
       <div class="sum-row">
         <div><div class="big-num" id="sum-xp">+0</div><div class="muted">XP</div></div>

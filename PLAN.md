@@ -113,7 +113,12 @@ Targets are defaults only. The clinician sets them per patient and raises them a
 
 ## 6. Gamification design (tied to survey results)
 
-- **Healing avatar** (29% chose "avatar that heals"): a heart character named after the patient. It fills up as the day's plan is completed and looks unwell after missed days, with gentle wording only.
+- **Recovery garden** (29% chose "avatar that heals", and families want a visible progress view): a garden that maps recovery.
+  - Every exercise attempted plants a flower (knee extension → sunflower, squat → tulip), and plants keep growing on later days.
+  - A tree grows as the best knee angle improves and bears fruit once the clinician's target is reached, so range-of-motion progress is visible.
+  - The streak brings sunshine (3 days) and butterflies (5 and 7 days).
+  - Missing 2+ days makes it droop and fade under a cloud, but **nothing ever dies**. Easier versions, rest days and sessions stopped for pain still water it, so the game never punishes safe choices.
+  - Milestones are announced on the summary screen and the garden is mentioned in the family update.
 - **Beat your best** (32%, the top motivator): show the best knee angle reached this week, e.g. "New personal best: 168°!".
 - **XP and levels**: XP is given for quality rather than quantity. A good-form rep earns 10, a rep with a form fault 6, an honest attempt 2, and finishing an exercise 20. **Going past the clinician's limit never earns XP.** This is a safety rule.
 - **Streaks**: daily flame counter. Clinician-scheduled rest days don't break the streak, and one "streak freeze" a week avoids punishing a bad day.
@@ -139,7 +144,7 @@ Safety rules for the game layer: no timers that push speed, no leaderboards betw
 - Web app, runs in Chrome on a laptop or phone, no install.
 - Two exercises: **seated knee extension** and **mini squat**, with the AR ghost limb, red/green form feedback, voice coaching, rep counting and hold timer.
 - PAIN button → easier version → stop and alert on the second report.
-- Healing heart avatar, XP and levels, streak, session summary, WhatsApp share to family.
+- Recovery garden (plants, a range-of-motion tree, sunshine and butterflies), XP and levels, streak, session summary, WhatsApp share to family.
 - Clinician page: protocol editor (targets, reps, holds, limits) and a progress dashboard from local data.
 - **Demo mode** with a simulated patient, as a backup if the camera or lighting fails during the presentation.
 
@@ -155,6 +160,12 @@ Safety rules for the game layer: no timers that push speed, no leaderboards betw
 - WhatsApp Business API daily family summaries and missed-day alerts; family cheers.
 - Protocol templates (e.g. TKR weeks 0–2, 2–6, 6–12) with clinician-approved progression.
 - Accessibility pass with older users (large-text mode, simplified mode for family-assisted setup).
+- **Set-up check (Floor Portal lite):** before each exercise, footprints or a chair outline drawn on the camera view; pose tracking confirms the patient is standing or sitting in the right spot. A spoken safety checklist covers clear floor, no rugs or cables, a steady chair with no wheels, and support within reach.
+- Share a picture of the garden in the family update.
+
+### Later: AR Floor Portal (native app)
+- Scan the room with ARKit/ARCore, place AR footprints on the real floor, and flag hazards (rug edges, loose cables, clutter).
+- Needs a native app: browser WebXR only works on ARCore-capable Android phones, not iPhones. It also needs a custom-trained hazard-detection model, since no off-the-shelf model detects rugs or cables reliably.
 
 ### Phase 3: Validation and pilot
 - Angle accuracy study against a goniometer (see §9).

@@ -241,3 +241,26 @@ p { margin: .4rem 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Recovery garden */
+.garden-wrap { width: 100%; max-width: 520px; margin: 0 auto; }
+.garden {
+  display: block; width: 100%; height: auto;
+  border: 3px solid var(--ink); border-radius: 16px; background: #dff1fb;
+}
+.garden .grow { transform-box: fill-box; transform-origin: 50% 100%; animation: sprout 1.4s cubic-bezier(.2, .9, .3, 1.25) .3s both; }
+.garden .butterfly { transform-box: fill-box; transform-origin: center; animation: flutter 3.2s ease-in-out infinite; }
+@keyframes sprout { from { transform: scale(0); } to { transform: scale(1); } }
+@keyframes flutter {
+  0%, 100% { transform: translate(0, 0) scaleX(1); }
+  25% { transform: translate(-14px, -8px) scaleX(.55); }
+  50% { transform: translate(-4px, -16px) scaleX(1); }
+  75% { transform: translate(10px, -6px) scaleX(.55); }
+}
+.garden-caption { display: grid; gap: 2px; text-align: center; }
+.garden-caption b { font-size: 1.05rem; }
+.garden-caption span { color: var(--ink-2); font-size: .95rem; }
+.garden-news { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 6px; text-align: left; }
+.garden-news li { padding: .45rem .75rem; border-radius: 12px; background: #f1f8ee; }
+.garden-news li.milestone { background: #fff6d6; border: 2px solid #f2c94c; animation: pop .4s ease-out both; }
+.garden-news li.muted { background: none; padding-top: 0; }

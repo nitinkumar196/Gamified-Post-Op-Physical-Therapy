@@ -64,10 +64,14 @@ export function stats(sessions = getSessions()) {
   };
 }
 
-/** Plausible history for the presentation: 4 days done, ending yesterday, 80 XP into level 4. */
+/**
+ * Plausible history for the presentation: 4 days done, ending yesterday, 80 XP into level 4.
+ * Knee angles climb towards (but stay under) the 155° target, so today's session
+ * can make the garden's tree bear fruit, and Day 5 brings the first butterfly.
+ */
 export function seedDemo() {
-  const kneeBest = [146, 151, 156, 160];
-  const squatBest = [140, 137, 134, 132];
+  const kneeBest = [132, 138, 143, 148];
+  const squatBest = [152, 149, 146, 144];
   const xps = [92, 96, 98, 94];
   const sessions = kneeBest.map((kb, i) => {
     const date = new Date();
