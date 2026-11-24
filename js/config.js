@@ -15,15 +15,25 @@ export const DEFAULT_PROTOCOL = {
   side: 'auto',        // 'auto' | 'left' | 'right'  (operated leg)
   painStopsAfter: 2,   // nth pain report in a session stops it and alerts the clinician
   exercises: {
-    kneeExtension: { enabled: true, reps: 3, target: 165, easierTarget: 150, holdSec: 2, easierHoldSec: 1 },
-    miniSquat:     { enabled: true, reps: 3, target: 130, easierTarget: 145, holdSec: 1, easierHoldSec: 1, safetyLimit: 100 },
+    kneeExtension: { enabled: true, reps: 3, target: 155, easierTarget: 140, holdSec: 1, easierHoldSec: 1 },
+    miniSquat:     { enabled: true, reps: 3, target: 140, easierTarget: 150, holdSec: 1, easierHoldSec: 1, safetyLimit: 100 },
   },
+};
+
+// Tracking tolerances (how forgiving the form check is).
+export const TRACKING = {
+  minVisibility: 0.35,  // a joint counts as "seen" above this confidence
+  dropoutGraceMs: 800,  // a joint can disappear this long before the patient is told
+  reachSlack: 5,        // reaching within this many degrees of the target counts
+  holdSlack: 8,         // during a hold, wobbling back this many degrees is fine
+  faultAfterMs: 500,    // a form fault must last this long before it counts
+  nearBand: 15,         // within this many degrees of target, the limb shows amber
 };
 
 // MediaPipe assets. If scripts/fetch-offline.ps1 has been run, the local copies
 // in vendor/mediapipe are used instead (works without internet).
 export const MEDIAPIPE = {
   cdn: 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14',
-  model: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
+  model: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task',
   localDir: 'vendor/mediapipe',
 };

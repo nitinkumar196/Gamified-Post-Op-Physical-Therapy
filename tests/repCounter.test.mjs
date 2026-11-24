@@ -83,3 +83,16 @@ test('ghost target point produces the requested knee angle', () => {
     assert.ok(t.x > knee.x, 'ghost should be on the same (forward) side as the shin');
   }
 });
+
+test('reach slack: getting within a few degrees of the target counts', () => {
+  const c = new RepCounter({ direction: 'up', restAt: 110, target: 155, holdMs: 1000, reach: 5, tolerance: 8 });
+  const ev = run(c, [[90, 500], [151, 1500], [151, 1200], [90, 1500]]);
+  assert.equal(ev.filter((e) => e.type === 'rep').length, 1);
+});
+
+test('hold slack: small wobble during the hold does not break it', () => {
+  const c = new RepCounter({ direction: 'up', restAt: 110, target: 155, holdMs: 1500, reach: 5, tolerance: 8 });
+  const ev = run(c, [[90, 500], [156, 1200], [144, 300], [155, 300], [155, 1000], [90, 1500]]);
+  assert.ok(!ev.includes('holdBroken'));
+  assert.equal(ev.filter((e) => e.type === 'rep').length, 1);
+});

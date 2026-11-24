@@ -51,7 +51,7 @@ export class Simulator {
     const peaks = [170, 168, 148, 171, 167, 166, 169];
     const peak = peaks[rep % peaks.length];
     const knee = 92 + (peak - 92) * f + noise(t, 1);
-    const lean = rep % peaks.length === 3 ? 38 * f : 4; // rep 4 leans back: form fault
+    const lean = rep % peaks.length === 3 ? 50 * f : 4; // rep 4 leans back: form fault
 
     const hip = { x: 560, y: 430 };
     const kneeP = { x: 735, y: 442 };
@@ -75,7 +75,7 @@ export class Simulator {
 
   #squat(t) {
     const { rep, f } = cycle(t, { rest1: 1.0, rise: 1.5, hold: 1.6, lower: 1.4, rest2: 0.8 });
-    const peaks = [56, 54, 40, 55, 58, 53, 57]; // knee flexion in degrees
+    const peaks = [56, 54, 32, 55, 58, 53, 57]; // knee flexion in degrees
     const r = rep % peaks.length;
     const flex = peaks[r] * f + Math.abs(noise(t, 2)) * 0.6;
     const a = 0.45 * flex, b = 0.55 * flex;

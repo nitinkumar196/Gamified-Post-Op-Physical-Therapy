@@ -5,6 +5,8 @@
 export const COLORS = {
   good: '#2fbf71',
   bad: '#e5484d',
+  near: '#f5a524',
+  idle: '#3b8fd9',
   ghost: '#2fbf71',
   arc: '#3b8fd9',
   bone: 'rgba(255,255,255,0.55)',
@@ -18,7 +20,7 @@ const CONNECTIONS = [
   [27, 29], [29, 31], [27, 31], [28, 30], [30, 32], [28, 32],
 ];
 
-const vis = (p, min = 0.5) => p && p.v >= min;
+const vis = (p, min = 0.35) => p && p.v >= min;
 
 function line(ctx, a, b, color, width, dash = null) {
   ctx.save();
@@ -154,7 +156,8 @@ function drawHoldRing(ctx, at, progress, s) {
 }
 
 /**
- * o = { pts, w, h, working: [[a,b],...], joint, ghost, arc, good, metric, target, hold, showSkeleton }
+ * o = { pts, w, h, working: [[a,b],...], joint, ghost, arc, good, near, metric, target, hold, showSkeleton }
+ * good = at target (green), near = almost there (amber), idle = resting (blue), otherwise red.
  */
 export function drawOverlay(ctx, o) {
   const s = o.w / 1280;
@@ -162,7 +165,8 @@ export function drawOverlay(ctx, o) {
   if (!o.working) return;
   drawGhost(ctx, o.ghost, s, o.good);
   if (!o.good) drawArc(ctx, o.arc, s);
-  drawWorking(ctx, o.working, o.good ? COLORS.good : COLORS.bad, o.joint, s);
+  const tone = o.good ? COLORS.good : o.near ? COLORS.near : o.idle ? COLORS.idle : COLORS.bad;
+  drawWorking(ctx, o.working, tone, o.joint, s);
   if (o.ghost) drawHoldRing(ctx, o.ghost.dot, o.hold, s);
   if (o.joint && Number.isFinite(o.metric)) drawBadge(ctx, o.joint, o.metric, o.target, o.good, s, o.w, o.h);
 }

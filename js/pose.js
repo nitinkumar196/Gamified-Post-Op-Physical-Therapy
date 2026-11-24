@@ -17,7 +17,7 @@ export function initPose(onStatus = () => {}) {
 
     const vision = await import(local ? new URL(localBundle, location.href).href : `${MEDIAPIPE.cdn}/vision_bundle.mjs`);
     const wasmPath = local ? new URL(`${MEDIAPIPE.localDir}/wasm`, location.href).href : `${MEDIAPIPE.cdn}/wasm`;
-    const localModel = `${MEDIAPIPE.localDir}/pose_landmarker_lite.task`;
+    const localModel = `${MEDIAPIPE.localDir}/pose_landmarker_full.task`;
     const model = (await exists(localModel)) ? localModel : MEDIAPIPE.model;
 
     const fileset = await vision.FilesetResolver.forVisionTasks(wasmPath);
@@ -25,9 +25,9 @@ export function initPose(onStatus = () => {}) {
       baseOptions: { modelAssetPath: model, delegate },
       runningMode: 'VIDEO',
       numPoses: 1,
-      minPoseDetectionConfidence: 0.5,
-      minPosePresenceConfidence: 0.5,
-      minTrackingConfidence: 0.5,
+      minPoseDetectionConfidence: 0.4,
+      minPosePresenceConfidence: 0.4,
+      minTrackingConfidence: 0.35,
     });
     try {
       landmarker = await vision.PoseLandmarker.createFromOptions(fileset, options('GPU'));

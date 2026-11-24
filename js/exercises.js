@@ -4,6 +4,7 @@
 // - ghost(j, target): where the correct limb should be, anchored to the patient's own body
 // Numbers (targets, reps, holds, limits) come from the clinician protocol.
 import { angleAt, angleFromHorizontal, angleFromVertical, pointAtAngle } from './geometry.js';
+import { TRACKING } from './config.js';
 
 // MediaPipe landmark indices as [left, right].
 export const IDX = {
@@ -26,7 +27,7 @@ export function pickSide(pts, current) {
   return score(other) > score(current) + 0.15 ? other : current;
 }
 
-const ok = (p) => p && p.v >= 0.5;
+const ok = (p) => p && p.v >= TRACKING.minVisibility;
 
 export const EXERCISES = {
   kneeExtension: {
@@ -53,8 +54,8 @@ export const EXERCISES = {
     arc: (j, ghost) => ({ center: j.knee, from: j.ankle, to: ghost.dot }),
     checks: (j) => {
       const f = [];
-      if (angleFromHorizontal(j.hip, j.knee) > 30) f.push({ key: 'thighLift', msg: 'Keep your thigh resting on the chair' });
-      if (ok(j.shoulder) && angleFromVertical(j.shoulder, j.hip) > 30) f.push({ key: 'lean', msg: 'Sit up tall' });
+      if (angleFromHorizontal(j.hip, j.knee) > 40) f.push({ key: 'thighLift', msg: 'Keep your thigh resting on the chair' });
+      if (ok(j.shoulder) && angleFromVertical(j.shoulder, j.hip) > 40) f.push({ key: 'lean', msg: 'Sit up tall' });
       return f;
     },
     cues: {
@@ -75,15 +76,15 @@ export const EXERCISES = {
     view: 'Side view · standing',
     why: 'Builds strength for standing up, sitting down and climbing stairs.',
     setup: [
-      'Prop the phone side-on, about 2.5 m away, so your whole body is visible.',
+      'Prop the phone side-on, about 2.5 m away. Hip, knee and ankle must be in view.',
       'Stand tall, feet hip-width apart. Hold a counter or chair back for support.',
       'Bend your knees a little, keeping your chest up. Hold, then stand back up.',
     ],
     direction: 'down',
-    restAt: 160,
-    required: ['shoulder', 'hip', 'knee', 'ankle'],
+    restAt: 162,
+    required: ['hip', 'knee', 'ankle'], // shoulder is optional: only used for the chest-up check
     metric: (j) => angleAt(j.hip, j.knee, j.ankle),
-    working: (j) => [[j.shoulder, j.hip], [j.hip, j.knee], [j.knee, j.ankle]],
+    working: (j) => [ok(j.shoulder) ? [j.shoulder, j.hip] : null, [j.hip, j.knee], [j.knee, j.ankle]].filter(Boolean),
     joint: (j) => j.knee,
     ghost: (j, target) => {
       const hipTarget = pointAtAngle(j.knee, j.ankle, j.hip, target);
@@ -92,7 +93,7 @@ export const EXERCISES = {
     arc: (j, ghost) => ({ center: j.knee, from: j.hip, to: ghost.dot }),
     checks: (j) => {
       const f = [];
-      if (angleFromVertical(j.shoulder, j.hip) > 45) f.push({ key: 'chestUp', msg: 'Keep your chest up' });
+      if (ok(j.shoulder) && angleFromVertical(j.shoulder, j.hip) > 55) f.push({ key: 'chestUp', msg: 'Keep your chest up' });
       return f;
     },
     cues: {
@@ -103,7 +104,7 @@ export const EXERCISES = {
       partial: 'Almost! Bend a little deeper next time',
       tooFar: "That's deep enough. Come up a little",
       done: 'Mini squats complete. Great job!',
-      visibility: 'Step back so your whole body is visible',
+      visibility: 'Make sure your hip, knee and ankle are in view',
     },
   },
 };

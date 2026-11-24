@@ -1,6 +1,7 @@
 // Patient app: screens, the per-frame form-check loop, pain handling and the
 // game layer (XP, levels, streak, avatar, family summary).
-import { APP_NAME, XP } from './config.js';
+import { APP_NAME, XP, TRACKING } from './config.js';
+import { LandmarkSmoother } from './filters.js';
 import { EXERCISES, jointsFor, pickSide, prescription } from './exercises.js';
 import { RepCounter } from './repCounter.js';
 import { Smoother } from './geometry.js';
@@ -31,6 +32,7 @@ const canvas = $('canvas');
 const ctx = canvas.getContext('2d');
 const video = $('video');
 const sim = new Simulator();
+const lmSmoother = new LandmarkSmoother({ trust: 0.3, holdMs: TRACKING.dropoutGraceMs });
 
 const S = {
   profile: null,
@@ -204,6 +206,7 @@ async function switchCamera() {
     }
     await attachCamera(cam);
     if (S.ex) { S.ex.counter.reset(); S.ex.smoother.reset(); S.ex.side = S.ex.fixedSide; }
+    lmSmoother.reset();
     const n = cameras.findIndex((d) => d.deviceId === cam.deviceId) + 1;
     showCue(`${cameraName(cam)}${n > 0 ? ` (${n} of ${cameras.length})` : ''}`);
   } catch (err) {
@@ -269,10 +272,15 @@ function beginExercise() {
   S.ex = {
     id, def, level, rx, fixedSide,
     side: fixedSide,
-    counter: new RepCounter({ direction: def.direction, restAt: def.restAt, target: rx.target, holdMs: rx.holdMs }),
-    smoother: new Smoother(80),
+    counter: new RepCounter({
+      direction: def.direction, restAt: def.restAt, target: rx.target, holdMs: rx.holdMs,
+      reach: TRACKING.reachSlack, tolerance: TRACKING.holdSlack,
+    }),
+    smoother: new Smoother(120),
     reps: [], partials: 0, best: null, faults: {}, faultSince: {}, finalized: false,
+    lastGood: -Infinity,
   };
+  lmSmoother.reset();
   if (S.source.kind === 'sim') sim.setExercise(id);
   updateCameraControls();
   $('hud-name').textContent = def.short;
@@ -322,9 +330,10 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-function processFrame(landmarks, w, h, now) {
+function processFrame(rawLandmarks, w, h, now) {
   const ex = S.ex;
   const def = ex.def;
+  const landmarks = lmSmoother.update(rawLandmarks, now);
   if (!landmarks) { setStatus('Step into view of the camera'); setProgress(0); return; }
 
   const pts = toPixels(landmarks, w, h, S.source.mirror);
@@ -335,18 +344,21 @@ function processFrame(landmarks, w, h, now) {
   const j = jointsFor(pts, ex.side);
   const showSkeleton = S.source.kind !== 'sim';
 
-  if (!def.required.every((k) => j[k] && j[k].v >= 0.5)) {
-    setStatus(def.cues.visibility);
-    coach.say(def.cues.visibility, { key: 'visibility', gap: 8000 });
+  if (!def.required.every((k) => j[k] && j[k].v >= TRACKING.minVisibility)) {
+    // Brief dropouts are normal (a hand passes in front, a joint leaves the frame).
+    // Keep the rep in progress and only speak up if it lasts.
+    if (now - ex.lastGood > TRACKING.dropoutGraceMs) {
+      setStatus(def.cues.visibility);
+      coach.say(def.cues.visibility, { key: 'visibility', gap: 8000 });
+    }
     drawOverlay(ctx, { pts, w, h, showSkeleton });
-    ex.smoother.reset();
     return;
   }
+  ex.lastGood = now;
   setStatus(null);
 
   const m = ex.smoother.next(def.metric(j), now);
-  const faults = ex.counter.state === 'rest' ? [] : def.checks(j);
-  speakPersistentFaults(faults, now);
+  const faults = ex.counter.state === 'rest' ? [] : persistentFaults(def.checks(j), now);
 
   for (const e of ex.counter.update(m, now, faults.map((f) => f.key))) handleEvent(e);
   if (!S.running) return; // exercise may have just completed
@@ -355,6 +367,7 @@ function processFrame(landmarks, w, h, now) {
 
   const st = ex.counter.state;
   const good = (st === 'holding' || st === 'returning' || ex.counter.inTarget(m)) && faults.length === 0;
+  const near = !good && ex.counter.reachN - ex.counter.n(m) <= TRACKING.nearBand;
   const ghost = def.ghost(j, ex.rx.target);
   drawOverlay(ctx, {
     pts, w, h, showSkeleton,
@@ -363,6 +376,8 @@ function processFrame(landmarks, w, h, now) {
     ghost,
     arc: st === 'returning' ? null : def.arc(j, ghost),
     good,
+    near,
+    idle: st === 'rest',
     metric: m,
     target: ex.rx.target,
     hold: ex.counter.holdProgress(now),
@@ -370,14 +385,20 @@ function processFrame(landmarks, w, h, now) {
   setProgress(ex.counter.progress(m));
 }
 
-function speakPersistentFaults(faults, now) {
+/** Only faults that have lasted a moment count; one-frame glitches are ignored. */
+function persistentFaults(faults, now) {
   const since = S.ex.faultSince;
   const present = new Set(faults.map((f) => f.key));
   for (const k of Object.keys(since)) if (!present.has(k)) delete since[k];
+  const lasting = [];
   for (const f of faults) {
     since[f.key] ??= now;
-    if (now - since[f.key] > 500) coach.say(f.msg, { key: f.key, gap: 4000 });
+    if (now - since[f.key] >= TRACKING.faultAfterMs) {
+      lasting.push(f);
+      coach.say(f.msg, { key: f.key, gap: 4000 });
+    }
   }
+  return lasting;
 }
 
 function trackBest(peak) {

@@ -4,9 +4,11 @@
 // Pure logic with no DOM access, so it can be unit-tested in Node.
 
 export class RepCounter {
-  constructor({ direction = 'up', restAt, target, holdMs = 1000, tolerance = 4, hysteresis = 6,
-                encourageAfterMs = 1500, minAttempt = 15 }) {
-    Object.assign(this, { direction, restAt, target, holdMs, tolerance, hysteresis, encourageAfterMs, minAttempt });
+  // reach: getting within this many degrees of the target counts as reaching it.
+  // tolerance: during a hold, slipping back this far is still a hold.
+  constructor({ direction = 'up', restAt, target, holdMs = 1000, tolerance = 4, reach = 0, hysteresis = 6,
+                encourageAfterMs = 1500, minAttempt = 12 }) {
+    Object.assign(this, { direction, restAt, target, holdMs, tolerance, reach, hysteresis, encourageAfterMs, minAttempt });
     this.reset();
   }
 
@@ -32,6 +34,7 @@ export class RepCounter {
   n(m) { return this.direction === 'up' ? m : -m; }
   get restN() { return this.n(this.restAt); }
   get targetN() { return this.n(this.target); }
+  get reachN() { return this.targetN - this.reach; }
 
   /** 0 at rest, 1 at target. */
   progress(m) {
@@ -39,7 +42,7 @@ export class RepCounter {
     return Math.max(0, Math.min(1, p));
   }
 
-  inTarget(m) { return this.n(m) >= this.targetN - (this.state === 'holding' ? this.tolerance : 0); }
+  inTarget(m) { return this.n(m) >= this.reachN - (this.state === 'holding' ? this.tolerance : 0); }
 
   holdProgress(t) {
     if (this.state === 'holding') return Math.min(1, (t - this.holdStart) / this.holdMs);
@@ -63,7 +66,7 @@ export class RepCounter {
 
       case 'moving':
         if (p > this.peakN + 1) { this.peakN = p; this.lastProgressT = t; }
-        if (p >= this.targetN) {
+        if (p >= this.reachN) {
           this.state = 'holding'; this.holdStart = t; this.reached = true;
           ev.push({ type: 'reachedTarget' });
         } else if (p < this.restN) {
@@ -80,7 +83,7 @@ export class RepCounter {
         if (t - this.holdStart >= this.holdMs) {
           this.state = 'returning';
           ev.push({ type: 'holdComplete' });
-        } else if (p < this.targetN - this.tolerance) {
+        } else if (p < this.reachN - this.tolerance) {
           this.state = 'moving'; this.lastProgressT = t; this.encouraged = true;
           ev.push({ type: 'holdBroken' });
         }
