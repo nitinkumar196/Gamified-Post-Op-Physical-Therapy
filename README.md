@@ -36,6 +36,8 @@ Then open **http://localhost:8000**. The camera only works on `localhost` or `ht
 
 Phones only allow the camera over **https**, so use the GitHub Pages link above. It redeploys automatically about a minute after every push to `main`.
 
+The app asks for the camera's full 4:3 picture and the lowest zoom available. If you still can't fit in frame, tap **🔄 Camera** during an exercise to cycle through the phone's cameras. The back and ultra-wide cameras see much more of the room, and the voice coach still works when you can't see the screen. Where the phone allows it, a **Zoom** slider also appears.
+
 Progress is saved per browser, so the phone and the laptop each keep their own history. To prepare a phone for the demo, open the link on it once and tick "Load demo history".
 
 ## How it works

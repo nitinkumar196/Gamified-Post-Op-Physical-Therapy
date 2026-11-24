@@ -83,6 +83,7 @@
         <label class="btn ghost">🎞️ Use a video file<input id="in-video" type="file" accept="video/*" hidden></label>
       </div>
       <button id="btn-ready" class="btn primary big" hidden>I’m ready</button>
+      <p class="tip">💡 Can’t fit in the picture? During the exercise, tap <b>🔄 Camera</b> to try the back or wide-angle camera, which sees much more of the room.</p>
       <p class="status" id="setup-status"></p>
       <button id="btn-setup-back" class="link">Back to home</button>
     </div>
@@ -97,6 +98,10 @@
         <div class="hud-ex">
           <div class="hud-name" id="hud-name"></div>
           <span class="chip" id="hud-level">Normal</span>
+          <div class="cam-controls" id="cam-controls" hidden>
+            <button id="btn-switch-cam" class="btn ghost dark small" type="button">🔄 Camera</button>
+            <label class="zoom" id="zoom-wrap" hidden>Zoom <input type="range" id="zoom" aria-label="Camera zoom"></label>
+          </div>
         </div>
         <div class="cue-bubble" id="cue" hidden></div>
         <div class="hud-reps"><span id="hud-reps">0</span><small>/<span id="hud-total">5</span> reps</small></div>

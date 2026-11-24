@@ -146,8 +146,17 @@ p { margin: .4rem 0; }
 }
 .hud-reps small { font-size: 1rem; font-weight: 700; color: var(--ink-2); }
 .hud-reps.bump { animation: bump .35s ease-out; }
+.cam-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; pointer-events: auto; }
+.cam-controls .btn { border-width: 2px; }
+.zoom {
+  display: flex; align-items: center; gap: 6px; color: #fff; font-size: .85rem; font-weight: 700;
+  background: rgba(31, 42, 55, .85); border: 2px solid #fff; border-radius: 12px; padding: .2rem .6rem;
+}
+.zoom input { width: 110px; accent-color: var(--green); }
+.tip { font-size: .92rem; color: var(--ink-2); background: #f1f6fb; border-radius: 12px; padding: .6rem .8rem; margin-top: 1rem; }
+/* Status sits low on the screen so it doesn't cover the body being tracked */
 .hud-status {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  position: absolute; left: 50%; bottom: 140px; transform: translateX(-50%);
   background: rgba(31, 42, 55, .88); color: #fff; padding: .9rem 1.3rem; border-radius: 14px;
   font-size: 1.2rem; font-weight: 700; text-align: center; max-width: min(90%, 520px);
 }
@@ -212,6 +221,22 @@ p { margin: .4rem 0; }
   .pain { width: 80px; height: 80px; font-size: 1rem; }
   .hud-bottom { gap: 10px; inset: auto 10px 12px 10px; }
   .progress-label { display: none; }
+}
+/* Phones held sideways: keep the HUD small so the camera picture stays visible */
+@media (max-height: 520px) {
+  .hud-top { inset: 8px 8px auto 8px; gap: 8px; }
+  .hud-name { font-size: .9rem; padding: .15rem .6rem; border-width: 2px; }
+  .chip { font-size: .75rem; }
+  .cue-bubble { font-size: 1.05rem; padding: .35rem .9rem; border-width: 2px; }
+  .hud-reps { font-size: 1.5rem; border-width: 2px; padding: .1rem .6rem; }
+  .hud-bottom { inset: auto 8px 8px 8px; gap: 10px; }
+  .pain { width: 64px; height: 64px; font-size: .85rem; border-width: 3px; }
+  .progress { height: 14px; border-width: 2px; }
+  .progress-label { display: none; }
+  .hud-status { bottom: 84px; font-size: .95rem; padding: .5rem .9rem; }
+  #btn-end { padding: .3rem .7rem; font-size: .9rem; }
+  .cam-controls .btn.small { font-size: .8rem; padding: .2rem .55rem; }
+  .zoom input { width: 80px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

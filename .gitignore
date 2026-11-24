@@ -8,3 +8,6 @@ __pycache__/
 *.log
 .DS_Store
 Thumbs.db
+
+# Temporary local review files
+_review/

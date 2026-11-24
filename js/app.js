@@ -7,6 +7,7 @@ import { Smoother } from './geometry.js';
 import { initPose, detectPose, toPixels } from './pose.js';
 import { drawOverlay } from './overlay.js';
 import { Simulator, SIM_SIZE } from './sim.js';
+import { openCamera, listCameras, setZoom, cameraName } from './camera.js';
 import { Coach, countWord } from './voice.js';
 import { heartSVG, animateHeart } from './avatar.js';
 import * as store from './store.js';
@@ -152,12 +153,7 @@ async function startCamera() {
   }
   setupStatus('Starting camera…');
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false,
-    });
-    video.srcObject = stream;
-    await video.play();
-    S.source = { kind: 'camera', mirror: true, stream };
+    await attachCamera(await openCamera());
   } catch (err) {
     console.error(err);
     setupStatus('Could not open the camera. Check the browser permission, or use Demo mode.');
@@ -166,6 +162,60 @@ async function startCamera() {
   if (await loadModel()) beginExercise();
   else stopSource();
 }
+
+async function attachCamera(cam) {
+  video.srcObject = cam.stream;
+  await video.play();
+  S.source = { kind: 'camera', mirror: cam.front, stream: cam.stream, cam };
+  S.lastVideoTime = -1;
+  S.lastLandmarks = null;
+  updateCameraControls();
+}
+
+function updateCameraControls() {
+  const cam = S.source?.kind === 'camera' ? S.source.cam : null;
+  $('cam-controls').hidden = !cam;
+  $('zoom-wrap').hidden = !cam?.zoom;
+  if (cam?.zoom) {
+    const z = $('zoom');
+    Object.assign(z, { min: cam.zoom.min, max: cam.zoom.max, step: cam.zoom.step });
+    z.value = cam.zoom.min;
+  }
+}
+
+let switching = false;
+async function switchCamera() {
+  if (switching || S.source?.kind !== 'camera') return;
+  switching = true;
+  try {
+    const cameras = await listCameras();
+    if (cameras.length < 2) { showCue('Only one camera found'); return; }
+    const current = S.source.cam.deviceId;
+    const i = cameras.findIndex((d) => d.deviceId === current);
+    const next = cameras[(i + 1) % cameras.length];
+    S.source.stream.getTracks().forEach((t) => t.stop()); // many phones can't open two cameras at once
+    let cam;
+    try {
+      cam = await openCamera({ deviceId: next.deviceId });
+    } catch (err) {
+      console.error(err);
+      cam = await openCamera({ deviceId: current });
+      showCue('That camera could not be opened');
+    }
+    await attachCamera(cam);
+    if (S.ex) { S.ex.counter.reset(); S.ex.smoother.reset(); S.ex.side = S.ex.fixedSide; }
+    const n = cameras.findIndex((d) => d.deviceId === cam.deviceId) + 1;
+    showCue(`${cameraName(cam)}${n > 0 ? ` (${n} of ${cameras.length})` : ''}`);
+  } catch (err) {
+    console.error(err);
+    showCue('Could not switch camera');
+  } finally {
+    switching = false;
+  }
+}
+
+$('btn-switch-cam').onclick = switchCamera;
+$('zoom').oninput = (e) => { if (S.source?.cam) setZoom(S.source.cam.track, +e.target.value); };
 
 async function loadModel() {
   try {
@@ -205,6 +255,7 @@ function stopSource() {
   video.srcObject = null;
   S.source = null;
   S.lastLandmarks = null;
+  updateCameraControls();
 }
 
 // ───────────────────────── Live session ─────────────────────────
@@ -223,6 +274,7 @@ function beginExercise() {
     reps: [], partials: 0, best: null, faults: {}, faultSince: {}, finalized: false,
   };
   if (S.source.kind === 'sim') sim.setExercise(id);
+  updateCameraControls();
   $('hud-name').textContent = def.short;
   $('hud-total').textContent = rx.reps;
   updateLevelChip();
