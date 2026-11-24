@@ -1,6 +1,5 @@
-# HealQuest: Build Plan
+# Gamified Post-Op Physical Therapy: Build Plan
 *Gamified, AR-guided post-op physiotherapy at home*
-("HealQuest" is a placeholder name. Change `APP_NAME` in `js/config.js`.)
 
 ---
 

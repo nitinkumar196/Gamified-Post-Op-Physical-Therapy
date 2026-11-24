@@ -1,7 +1,7 @@
 // Central configuration. Clinician-editable values live in DEFAULT_PROTOCOL and
 // can be overridden per patient from the clinician page (dashboard.html).
 
-export const APP_NAME = 'HealQuest';
+export const APP_NAME = 'Gamified Post-Op Physical Therapy';
 
 export const XP = {
   good: 10,          // rep at target, held, no form faults

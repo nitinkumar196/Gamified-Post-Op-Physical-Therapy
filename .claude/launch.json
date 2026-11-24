@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "healquest",
+      "name": "gamified-pt",
       "runtimeExecutable": "python",
       "runtimeArgs": ["scripts/serve.py", "8000"],
       "port": 8000

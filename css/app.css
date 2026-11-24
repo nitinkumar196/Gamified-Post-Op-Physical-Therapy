@@ -98,7 +98,7 @@ p { margin: .4rem 0; }
 }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .stat-label { font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
-.stat-value { font-size: 2.2rem; font-weight: 900; line-height: 1.1; }
+.stat-value { font-size: clamp(1.6rem, 7vw, 2.2rem); font-weight: 900; line-height: 1.1; white-space: nowrap; }
 .stat-sub { font-size: .9rem; color: var(--muted); }
 .xpbar { height: 12px; border: 2px solid var(--ink); border-radius: 99px; overflow: hidden; margin: .4rem 0 .2rem; background: #fff; }
 .xpbar > div { height: 100%; background: var(--green); transition: width .6s ease; }
@@ -203,6 +203,8 @@ p { margin: .4rem 0; }
 
 @media (max-width: 760px) {
   body { font-size: 17px; }
+  .brand { font-size: 1.15rem; }
+  .flame { font-size: 1.4rem; }
   .home-grid { grid-template-columns: 1fr; }
   .hud-top { grid-template-columns: 1fr auto; }
   .cue-bubble { grid-column: 1 / -1; grid-row: 2; justify-self: center; font-size: 1.2rem; }

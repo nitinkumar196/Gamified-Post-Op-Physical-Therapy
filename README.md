@@ -1,4 +1,4 @@
-# HealQuest: AR-guided, gamified post-op physio (prototype)
+# Gamified Post-Op Physical Therapy (prototype)
 
 A browser prototype of the app described in [PLAN.md](PLAN.md). It uses the camera to track the patient's pose on-device (MediaPipe), draws a green **ghost limb** showing the correct position, turns the limb red or green, counts reps with a hold timer, coaches by voice, and adds a game layer (healing-heart avatar, XP and levels, streak, family WhatsApp summary). A clinician page sets the targets and shows progress.
 
